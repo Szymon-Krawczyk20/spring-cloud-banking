@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Internet Banking Microservices — Project Explanation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Georgia', serif;
+      background-color: #f5f0e8;
+      color: #3d3228;
+      line-height: 1.75;
+      padding: 0 1rem 4rem;
+    }
+
+    /* ── Header ── */
+    header {
+      background-color: #e8dcc8;
+      border-bottom: 2px solid #c9b99a;
+      padding: 2.5rem 2rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #5c3d1e;
+      letter-spacing: 0.03em;
+    }
+
+    header p.subtitle {
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      color: #7a5c3a;
+      font-style: italic;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1.2rem;
+    }
+
+    .badge {
+      background-color: #d4b896;
+      color: #4a2e10;
+      font-family: 'Courier New', monospace;
+      font-size: 0.78rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 20px;
+      border: 1px solid #b89770;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding-top: 2.5rem;
+    }
+
+    /* ── Tab Nav ── */
+    .tab-nav {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      border-bottom: 2px solid #c9b99a;
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      cursor: pointer;
+      font-family: 'Georgia', serif;
+      font-size: 0.9rem;
+      color: #7a5c3a;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+
+    .tab-btn:hover { color: #5c3d1e; }
+
+    .tab-btn.active {
+      color: #5c3d1e;
+      border-bottom-color: #a0714f;
+      font-weight: bold;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Section ── */
+    .section {
+      background-color: #fdf8f2;
+      border: 1px solid #ddd0b8;
+      border-radius: 8px;
+      padding: 1.6rem 1.8rem;
+      margin-bottom: 1.6rem;
+    }
+
+    .section h2 {
+      font-size: 1.15rem;
+      color: #5c3d1e;
+      margin-bottom: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section h2 .icon {
+      font-size: 1rem;
+      opacity: 0.75;
+    }
+
+    /* ── Dialog bubble ── */
+    .dialog-bubble {
+      background-color: #f0e6d3;
+      border-left: 4px solid #b89770;
+      border-radius: 0 8px 8px 0;
+      padding: 1.1rem 1.4rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.97rem;
+      color: #3d3228;
+      position: relative;
+    }
+
+    .dialog-bubble p + p { margin-top: 0.7rem; }
+
+    .dialog-label {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #9c7450;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Architecture diagram ── */
+    .arch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .arch-card {
+      background-color: #f5ede0;
+      border: 1px solid #c9b99a;
+      border-radius: 8px;
+      padding: 0.9rem 1rem;
+      text-align: center;
+    }
+
+    .arch-card .arch-icon { font-size: 1.6rem; margin-bottom: 0.3rem; }
+
+    .arch-card .arch-name {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: #5c3d1e;
+      margin-bottom: 0.25rem;
+    }
+
+    .arch-card .arch-port {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #9c7450;
+      margin-bottom: 0.3rem;
+    }
+
+    .arch-card .arch-desc {
+      font-size: 0.78rem;
+      color: #6b4f35;
+    }
+
+    /* ── Flow steps ── */
+    .flow {
+      counter-reset: flow-counter;
+      list-style: none;
+      margin-top: 0.5rem;
+    }
+
+    .flow li {
+      counter-increment: flow-counter;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.9rem;
+      padding: 0.55rem 0;
+      border-bottom: 1px solid #e8dcc8;
+      font-size: 0.93rem;
+    }
+
+    .flow li:last-child { border-bottom: none; }
+
+    .flow li::before {
+      content: counter(flow-counter);
+      min-width: 1.6rem;
+      height: 1.6rem;
+      background-color: #c9a87c;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-family: 'Courier New', monospace;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    /* ── Q&A ── */
+    .qa-item {
+      border: 1px solid #ddd0b8;
+      border-radius: 8px;
+      margin-bottom: 0.8rem;
+      overflow: hidden;
+    }
+
+    .qa-question {
+      background-color: #ede3d4;
+      padding: 0.8rem 1.1rem;
+      font-size: 0.93rem;
+      color: #5c3d1e;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .qa-question:hover { background-color: #e4d7c4; }
+
+    .qa-arrow {
+      font-size: 0.75rem;
+      transition: transform 0.25s;
+      color: #9c7450;
+    }
+
+    .qa-answer {
+      background-color: #fdf8f2;
+      padding: 0 1.1rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      font-size: 0.92rem;
+      color: #3d3228;
+    }
+
+    .qa-answer p { padding: 0.8rem 0; }
+
+    .qa-item.open .qa-answer {
+      max-height: 400px;
+      padding: 0 1.1rem;
+    }
+
+    .qa-item.open .qa-arrow { transform: rotate(180deg); }
+
+    /* ── Tech stack table ── */
+    .tech-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 0.5rem;
+    }
+
+    .tech-table th {
+      background-color: #e4d7c4;
+      color: #5c3d1e;
+      text-align: left;
+      padding: 0.55rem 0.9rem;
+      font-weight: bold;
+    }
+
+    .tech-table td {
+      padding: 0.5rem 0.9rem;
+      border-bottom: 1px solid #e8dcc8;
+      color: #4a3520;
+      vertical-align: top;
+    }
+
+    .tech-table tr:last-child td { border-bottom: none; }
+    .tech-table tr:hover td { background-color: #f5ede0; }
+
+    .tag {
+      display: inline-block;
+      background-color: #dcc9ad;
+      color: #4a2e10;
+      font-family: 'Courier New', monospace;
+      font-size: 0.74rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 4px;
+      margin: 0.1rem 0.1rem 0 0;
+    }
+
+    /* ── Improvement list ── */
+    .improve-list {
+      list-style: none;
+      margin-top: 0.4rem;
+    }
+
+    .improve-list li {
+      padding: 0.4rem 0;
+      border-bottom: 1px solid #e8dcc8;
+      font-size: 0.92rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+    }
+
+    .improve-list li:last-child { border-bottom: none; }
+
+    .improve-list li::before {
+      content: '→';
+      color: #b89770;
+      flex-shrink: 0;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.8rem;
+      color: #9c7450;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Internet Banking Microservices</h1>
+  <p class="subtitle">A Spring Boot &amp; Spring Cloud backend concept project</p>
+  <div class="badge-row">
+    <span class="badge">Java 21</span>
+    <span class="badge">Spring Boot 3.2</span>
+    <span class="badge">Spring Cloud</span>
+    <span class="badge">Keycloak</span>
+    <span class="badge">MySQL</span>
+    <span class="badge">Docker</span>
+    <span class="badge">Zipkin</span>
+    <span class="badge">Eureka</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Tab Navigation -->
+  <nav class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab(event, 'tab-overview')">Overview</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-architecture')">Architecture</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-dialog')">Explanation Dialog</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-flow')">Key Flows</button>
+    <button class="tab-btn" onclick="switchTab(event, 'tab-qa')">Q &amp; A</button>
+  </nav>
+
+  <!-- ═══ TAB: Overview ═══ -->
+  <div id="tab-overview" class="tab-panel active">
+
+    <div class="section">
+      <h2><span class="icon">📌</span> What is this project?</h2>
+      <p>
+        An internet banking backend system built with a <strong>microservices architecture</strong>.
+        It demonstrates enterprise-grade patterns including OAuth2 security, service discovery,
+        centralized configuration, inter-service communication, and distributed tracing —
+        all running in Docker.
+      </p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🛠</span> Technology Stack</h2>
+      <table class="tech-table">
+        <thead>
+          <tr><th>Category</th><th>Technology</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Language &amp; Runtime</td>
+            <td><span class="tag">Java 21</span> <span class="tag">Spring Boot 3.2.4</span></td>
+          </tr>
+          <tr>
+            <td>Microservices</td>
+            <td><span class="tag">Spring Cloud 2023</span> <span class="tag">Eureka</span> <span class="tag">API Gateway</span> <span class="tag">OpenFeign</span> <span class="tag">Config Server</span></td>
+          </tr>
+          <tr>
+            <td>Security</td>
+            <td><span class="tag">Keycloak 23</span> <span class="tag">OAuth2</span> <span class="tag">JWT</span></td>
+          </tr>
+          <tr>
+            <td>Databases</td>
+            <td><span class="tag">MySQL 8.4</span> <span class="tag">PostgreSQL 15</span> <span class="tag">Flyway</span> <span class="tag">JPA</span></td>
+          </tr>
+          <tr>
+            <td>Observability</td>
+            <td><span class="tag">Zipkin</span> <span class="tag">Micrometer</span> <span class="tag">Actuator</span></td>
+          </tr>
+          <tr>
+            <td>API Docs</td>
+            <td><span class="tag">SpringDoc OpenAPI</span> <span class="tag">Swagger UI</span></td>
+          </tr>
+          <tr>
+            <td>DevOps</td>
+            <td><span class="tag">Docker</span> <span class="tag">Docker Compose</span> <span class="tag">Gradle</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">✅</span> What it does</h2>
+      <ul class="improve-list">
+        <li>User registration with Keycloak-backed identity management and admin approval workflow</li>
+        <li>Fund transfers between bank accounts with fully atomic debit/credit operations</li>
+        <li>Utility bill payments routed through the core banking engine</li>
+        <li>JWT-protected API with a single gateway entry point</li>
+        <li>End-to-end distributed tracing across all services via Zipkin</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">💡</span> What I'd improve next</h2>
+      <ul class="improve-list">
+        <li>Add event-driven messaging (Kafka) for async transaction notifications</li>
+        <li>Implement Saga pattern with compensating transactions for distributed failures</li>
+        <li>Add circuit breakers with Resilience4j to handle downstream service outages</li>
+        <li>Build a notification service for email/SMS alerts on transactions</li>
+        <li>Add retry logic and dead-letter queues for failed inter-service calls</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: Architecture ═══ -->
+  <div id="tab-architecture" class="tab-panel">
+
+    <div class="section">
+      <h2><span class="icon">🏗</span> Service Map</h2>
+      <div class="arch-grid">
+        <div class="arch-card">
+          <div class="arch-icon">🌐</div>
+          <div class="arch-name">API Gateway</div>
+          <div class="arch-port">:8082</div>
+          <div class="arch-desc">Single entry point. Enforces OAuth2/JWT. Routes requests to services.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">📡</div>
+          <div class="arch-name">Service Registry</div>
+          <div class="arch-port">:8081</div>
+          <div class="arch-desc">Eureka server. Services self-register and discover each other by name.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">⚙️</div>
+          <div class="arch-name">Config Server</div>
+          <div class="arch-port">:8090</div>
+          <div class="arch-desc">Pulls configs from Git. Serves environment-specific settings to all services.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">🏦</div>
+          <div class="arch-name">Core Banking</div>
+          <div class="arch-port">:8092</div>
+          <div class="arch-desc">Source of truth. Manages accounts, balances, and atomic transactions.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">👤</div>
+          <div class="arch-name">User Service</div>
+          <div class="arch-port">:8083</div>
+          <div class="arch-desc">Handles registration, Keycloak user creation, and approval workflow.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">💸</div>
+          <div class="arch-name">Fund Transfer</div>
+          <div class="arch-port">:8084</div>
+          <div class="arch-desc">Orchestrates money transfers. Delegates execution to Core Banking.</div>
+        </div>
+        <div class="arch-card">
+          <div class="arch-icon">🧾</div>
+          <div class="arch-name">Utility Payment</div>
+          <div class="arch-port">:8085</div>
+          <div class="arch-desc">Orchestrates bill payments. Same pattern as Fund Transfer.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🗄</span> Infrastructure</h2>
+      <table class="tech-table">
+        <thead>
+          <tr><th>Component</th><th>Role</th><th>Port</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>MySQL 8.4</td><td>Banking data — accounts, transactions, users</td><td>3306</td></tr>
+          <tr><td>PostgreSQL 15</td><td>Keycloak authentication data</td><td>internal</td></tr>
+          <tr><td>Keycloak 23</td><td>OAuth2 / OpenID Connect identity provider</td><td>8080</td></tr>
+          <tr><td>Zipkin</td><td>Distributed tracing UI</td><td>9411</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🔗</span> Design Patterns Used</h2>
+      <table class="tech-table">
+        <thead>
+          <tr><th>Pattern</th><th>Where Applied</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>API Gateway</td><td>Single entry point, security enforcement, header propagation</td></tr>
+          <tr><td>Service Registry</td><td>Eureka for dynamic service discovery</td></tr>
+          <tr><td>Orchestrator</td><td>Fund Transfer &amp; Utility Payment coordinate Core Banking</td></tr>
+          <tr><td>Feign Client</td><td>Declarative HTTP between services</td></tr>
+          <tr><td>Centralized Config</td><td>Git-backed config server for all services</td></tr>
+          <tr><td>Distributed Tracing</td><td>Zipkin + Micrometer for cross-service request tracking</td></tr>
+          <tr><td>Transactional Boundary</td><td>@Transactional in Core Banking for atomic debit/credit</td></tr>
+          <tr><td>Audit Trail</td><td>AuditAware base class — createdBy, modifiedDate, version</td></tr>
+          <tr><td>OAuth2 Resource Server</td><td>Gateway validates JWT, passes X-Auth-Id downstream</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: Explanation Dialog ═══ -->
+  <div id="tab-dialog" class="tab-panel">
+
+    <div class="section">
+      <h2><span class="icon">⚡</span> Elevator Pitch  <small style="font-size:0.75rem;font-weight:normal;color:#9c7450;">(30 seconds)</small></h2>
+      <div class="dialog-label">Say this when time is short</div>
+      <div class="dialog-bubble">
+        <p>
+          "I built an internet banking backend using a microservices architecture with Spring Boot and Spring Cloud.
+          It handles user registration, fund transfers, and utility bill payments.
+          The system runs on Docker, uses Keycloak for OAuth2 authentication, and applies enterprise patterns
+          like API Gateway, Eureka service discovery, and distributed tracing with Zipkin."
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🎤</span> Interview Answer  <small style="font-size:0.75rem;font-weight:normal;color:#9c7450;">(2–3 minutes)</small></h2>
+      <div class="dialog-label">For a standard "tell me about a project" question</div>
+      <div class="dialog-bubble">
+        <p>
+          "This is an internet banking backend I built to demonstrate real-world microservices design patterns.
+          The system is split into seven services: an API Gateway, a Service Registry, a Config Server,
+          and four business services — User, Core Banking, Fund Transfer, and Utility Payment.
+        </p>
+        <p>
+          All client requests go through the API Gateway, which enforces OAuth2 security using Keycloak.
+          It validates JWT tokens and forwards the authenticated user's ID to downstream services via a request header.
+        </p>
+        <p>
+          The Core Banking Service is the heart of the system — it owns all account and transaction data in MySQL.
+          When a fund transfer is initiated, the Fund Transfer Service acts as an orchestrator:
+          it saves the request locally first, then calls Core Banking to execute the actual debit and credit atomically.
+          If anything fails mid-way, the entire database transaction rolls back.
+        </p>
+        <p>
+          For service discovery I used Eureka, so services find each other by name rather than hardcoded URLs.
+          Configuration is managed centrally by a Spring Cloud Config Server pulling from a Git repository.
+          And I integrated Zipkin with Micrometer for distributed tracing across all services.
+        </p>
+        <p>
+          If I were to extend this, I'd add Kafka for async event-driven notifications and a Saga pattern
+          with compensating transactions to handle partial failures across services."
+        </p>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🧭</span> Technical Deep-Dive  <small style="font-size:0.75rem;font-weight:normal;color:#9c7450;">(5+ minutes)</small></h2>
+      <div class="dialog-label">For a demo or senior engineer audience</div>
+      <div class="dialog-bubble">
+        <p>
+          "Let me walk you through the architecture layer by layer.
+        </p>
+        <p>
+          <em>Entry Point — API Gateway.</em>
+          Every request hits the Spring Cloud Gateway first. It validates JWT tokens by calling Keycloak's JWK Set URI.
+          Once verified, it extracts the user ID from the token and passes it downstream via an X-Auth-Id header.
+          Only the user registration endpoint is publicly accessible — everything else requires a valid token.
+        </p>
+        <p>
+          <em>Authentication — Keycloak.</em>
+          I chose Keycloak as the OAuth2/OIDC provider because it handles the full complexity of token issuance,
+          refresh, and revocation. User registration is a two-step flow:
+          the User Service validates the national ID against pre-seeded Core Banking data,
+          then creates a disabled Keycloak account. An admin must approve it before the user can log in.
+        </p>
+        <p>
+          <em>Core Banking Service.</em>
+          This is the single source of truth for all financial data.
+          The fund transfer is a fully atomic operation — I fetch both accounts, validate the balance,
+          then debit and credit inside a single @Transactional method.
+          Either both writes succeed, or neither does.
+        </p>
+        <p>
+          <em>Orchestrator Services.</em>
+          The Fund Transfer and Utility Payment services follow an orchestrator pattern.
+          They record the request locally with a PENDING status before calling Core Banking.
+          On success they update the local record. This gives a full local audit trail
+          even if Core Banking responds slowly.
+        </p>
+        <p>
+          <em>Observability.</em>
+          Zipkin and Micrometer give me end-to-end trace IDs across all services.
+          I can see exactly where latency comes from in a full request chain —
+          which is critical when debugging distributed systems."
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: Key Flows ═══ -->
+  <div id="tab-flow" class="tab-panel">
+
+    <div class="section">
+      <h2><span class="icon">👤</span> User Registration Flow</h2>
+      <ol class="flow">
+        <li>User submits registration request with email, password, and national ID.</li>
+        <li>User Service checks Keycloak — email must not already exist.</li>
+        <li>User Service calls Core Banking: <code>GET /api/v1/user/{nationalId}</code> to fetch pre-seeded banking record.</li>
+        <li>Validates that the submitted email matches the core banking record.</li>
+        <li>Creates a disabled Keycloak user with the given credentials.</li>
+        <li>Saves a local user record with status <strong>PENDING</strong>.</li>
+        <li>Admin approves the user — status becomes <strong>APPROVED</strong>, Keycloak account is enabled.</li>
+        <li>User can now log in and obtain a JWT from Keycloak.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">💸</span> Fund Transfer Flow</h2>
+      <ol class="flow">
+        <li>Authenticated user sends transfer request through the API Gateway.</li>
+        <li>Gateway validates JWT, extracts user ID, forwards request with X-Auth-Id header.</li>
+        <li>Fund Transfer Service saves the request with status <strong>PENDING</strong>.</li>
+        <li>Calls Core Banking via Feign: <code>POST /api/v1/transaction/fund-transfer</code>.</li>
+        <li>Core Banking fetches source &amp; destination accounts from MySQL.</li>
+        <li>Validates source account has sufficient available balance.</li>
+        <li>Inside one <code>@Transactional</code> block — debits source, credits destination, records both transactions.</li>
+        <li>Returns a transaction reference ID to the Fund Transfer Service.</li>
+        <li>Fund Transfer Service updates local record to <strong>SUCCESS</strong> with the reference ID.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🧾</span> Utility Payment Flow</h2>
+      <ol class="flow">
+        <li>User submits a bill payment request (account number + utility provider + amount).</li>
+        <li>Utility Payment Service saves the request with status <strong>PROCESSING</strong>.</li>
+        <li>Calls Core Banking via Feign: <code>POST /api/v1/transaction/util-payment</code>.</li>
+        <li>Core Banking validates the payer's account and balance.</li>
+        <li>Deducts the amount atomically and records a UTILITY_PAYMENT transaction.</li>
+        <li>Utility Payment Service updates local record to <strong>SUCCESS</strong> with transaction ID.</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🚀</span> Service Startup Order</h2>
+      <ol class="flow">
+        <li>Zipkin — observability must be up first.</li>
+        <li>PostgreSQL — needed by Keycloak.</li>
+        <li>MySQL — needed by all business services.</li>
+        <li>Keycloak — auth provider must be ready before any service validates tokens.</li>
+        <li>Config Server — all services pull config on boot.</li>
+        <li>Service Registry (Eureka) — services register here.</li>
+        <li>API Gateway &amp; business services — can now start in any order.</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <!-- ═══ TAB: Q&A ═══ -->
+  <div id="tab-qa" class="tab-panel">
+
+    <div class="section">
+      <h2><span class="icon">❓</span> Likely Interview Questions</h2>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          Why did you split it into these specific services?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Each service maps to a clear business domain — user management, core banking, and payments.
+          This lets teams work independently and deploy without coordinating releases.
+          It also lets you scale only what needs it — if fund transfers spike, I scale just that service without touching the others.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          How do you ensure data consistency across services?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Within a single service I use @Transactional for ACID guarantees — the debit and credit in Core Banking are one atomic operation.
+          Across services I rely on the orchestrator pattern: the Fund Transfer Service records the request before calling Core Banking,
+          giving a local audit trail. In a production system I'd add a Saga pattern with compensating transactions to handle partial failures.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          Why Keycloak instead of rolling your own auth?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Keycloak is battle-tested and handles the full complexity of OAuth2/OIDC — token issuance, refresh, revocation, and user federation.
+          It would be a mistake to build that from scratch. The business value is in the banking operations, not the auth infrastructure.
+          Keycloak also gives me an admin UI for user management out of the box.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          How do services find each other?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Through Eureka service registry. Each service registers its host and port on startup.
+          Feign clients resolve service names to actual instances at runtime — I never hardcode URLs.
+          This also enables client-side load balancing automatically when multiple instances of a service are running.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          What happens if Core Banking is down when a transfer is requested?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Currently the Feign call fails and the local PENDING record stays in that state — the transfer doesn't go through.
+          In a production system I'd add a circuit breaker with Resilience4j to fail fast and return a clean error to the user,
+          plus a retry mechanism or async queue so the transfer can be retried when Core Banking recovers.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          How does distributed tracing work here?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>Micrometer with Brave auto-instruments every incoming and outgoing HTTP call.
+          Each request gets a unique trace ID that is propagated via HTTP headers across all service hops.
+          Zipkin collects these spans and lets me visualize the full journey of a request —
+          I can see exactly how long each service took and where errors occurred.</p>
+        </div>
+      </div>
+
+      <div class="qa-item" onclick="toggleQA(this)">
+        <div class="qa-question">
+          What is the X-Auth-Id header for?
+          <span class="qa-arrow">▼</span>
+        </div>
+        <div class="qa-answer">
+          <p>The API Gateway validates the JWT and extracts the Keycloak user ID from the token claims.
+          Rather than making every downstream service validate the token independently,
+          the gateway passes the verified identity forward via the X-Auth-Id header.
+          Downstream services trust this header because they are only reachable through the gateway.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Internet Banking Microservices — Concept Project &nbsp;|&nbsp; Spring Boot 3.2 · Spring Cloud 2023 · Keycloak 23
+</footer>
+
+<script>
+  function switchTab(e, id) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    document.getElementById(id).classList.add('active');
+  }
+
+  function toggleQA(item) {
+    item.classList.toggle('open');
+  }
+</script>
+
+</body>
+</html>

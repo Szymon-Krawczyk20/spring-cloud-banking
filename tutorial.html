@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Internet Banking Microservices – Tutorial</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --orange: #ffa657;
+    --teal: #39d353;
+    --code-bg: #1f2937;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 40px 20px;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  /* Cover */
+  .cover {
+    text-align: center;
+    padding: 60px 0 80px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+  .cover h1 {
+    font-size: 2.4em;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .cover .subtitle {
+    color: var(--muted);
+    font-size: 1.1em;
+  }
+  .cover .badge {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: #21262d;
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-size: 0.85em;
+  }
+
+  /* Learning path */
+  .path-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 24px 0 40px;
+  }
+  .path-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .path-card .step-num {
+    font-size: 0.75em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .path-card .step-name {
+    font-size: 0.95em;
+    color: var(--accent);
+    margin-top: 4px;
+    font-weight: 600;
+  }
+  .path-card .step-desc {
+    font-size: 0.82em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* Section headers */
+  .chapter {
+    margin-top: 70px;
+    padding-top: 30px;
+    border-top: 2px solid var(--border);
+  }
+  .chapter-label {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  h2 {
+    font-size: 1.9em;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .chapter-subtitle {
+    color: var(--muted);
+    font-size: 0.95em;
+    margin-bottom: 28px;
+  }
+
+  h3 {
+    font-size: 1.15em;
+    color: var(--orange);
+    margin: 32px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h4 {
+    font-size: 1em;
+    color: var(--purple);
+    margin: 20px 0 8px;
+  }
+
+  p { margin: 10px 0; }
+
+  a { color: var(--accent); text-decoration: none; }
+
+  /* Callout boxes */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: #1a2332;
+    border-radius: 0 6px 6px 0;
+    padding: 14px 18px;
+    margin: 18px 0;
+    font-size: 0.92em;
+  }
+  .callout.green  { border-color: var(--green);  background: #0d2218; }
+  .callout.yellow { border-color: var(--yellow); background: #251e0a; }
+  .callout.red    { border-color: var(--red);    background: #2d0f0f; }
+
+  .callout strong { color: var(--accent); }
+  .callout.green  strong { color: var(--green); }
+  .callout.yellow strong { color: var(--yellow); }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 14px 0;
+    font-size: 0.88em;
+    line-height: 1.6;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    color: var(--text);
+  }
+  p code, li code {
+    background: #2d333b;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: var(--orange);
+  }
+
+  /* Syntax highlight classes */
+  .kw  { color: #ff7b72; }   /* keyword */
+  .an  { color: #79c0ff; }   /* annotation */
+  .st  { color: #a5d6ff; }   /* string */
+  .cm  { color: #8b949e; font-style: italic; } /* comment */
+  .nm  { color: var(--teal); }  /* name/method */
+  .tp  { color: var(--purple); } /* type */
+  .nb  { color: var(--orange); } /* number/boolean */
+  .ky  { color: #ffa657; }   /* yaml key */
+  .vl  { color: #a5d6ff; }   /* yaml value */
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 0.9em;
+  }
+  th {
+    background: #21262d;
+    color: var(--muted);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  td:first-child { color: var(--accent); font-family: monospace; font-size: 0.9em; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1c2128; }
+
+  /* Lists */
+  ul, ol {
+    padding-left: 22px;
+    margin: 10px 0;
+  }
+  li { margin: 5px 0; }
+  li strong { color: var(--orange); }
+
+  /* Flow diagram */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin: 18px 0;
+    font-family: monospace;
+    font-size: 0.88em;
+    line-height: 2;
+    color: var(--muted);
+  }
+  .flow .node { color: var(--text); font-weight: 600; }
+  .flow .arrow { color: var(--accent); }
+  .flow .note { color: var(--green); }
+
+  /* Summary box */
+  .summary {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 30px;
+  }
+  .summary h4 {
+    color: var(--green);
+    margin-top: 0;
+    margin-bottom: 14px;
+    border: none;
+  }
+
+  /* Print styles */
+  @media print {
+    body { background: #fff; color: #000; }
+    .cover h1 { color: #1a56db; }
+    h2 { color: #1a56db; }
+    h3 { color: #d97706; }
+    pre { background: #f3f4f6; border-color: #d1d5db; }
+    pre code { color: #111; }
+    .callout { background: #eff6ff; border-color: #3b82f6; }
+    td:first-child { color: #1a56db; }
+    .chapter { page-break-before: always; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- COVER -->
+  <div class="cover">
+    <h1>Internet Banking Microservices</h1>
+    <div class="subtitle">Step-by-step tutorial guide · Spring Boot 3.2 · Java 21</div>
+    <div class="badge">Steps 1 – 4 covered</div>
+  </div>
+
+  <!-- LEARNING PATH -->
+  <h3 style="border:none;margin-top:0">Learning Path</h3>
+  <p>Start learning in this order — it follows how the project was designed and built:</p>
+  <div class="path-grid">
+    <div class="path-card">
+      <div class="step-num">Step 1</div>
+      <div class="step-name">Service Registry</div>
+      <div class="step-desc">Netflix Eureka — the phone book for all services.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 2</div>
+      <div class="step-name">Config Server</div>
+      <div class="step-desc">Centralized config from a Git repo for all services.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 3</div>
+      <div class="step-name">API Gateway</div>
+      <div class="step-desc">Single entry point: routing + JWT auth via Keycloak.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 4</div>
+      <div class="step-name">Core Banking</div>
+      <div class="step-desc">Accounts, balances, fund transfers, utility payments.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 5</div>
+      <div class="step-name">User Service</div>
+      <div class="step-desc">User management + Keycloak REST API integration.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 6</div>
+      <div class="step-name">Fund Transfer</div>
+      <div class="step-desc">Transfers via Feign + RabbitMQ notifications.</div>
+    </div>
+    <div class="path-card">
+      <div class="step-num">Step 7</div>
+      <div class="step-name">Utility Payment</div>
+      <div class="step-desc">Bill payments, similar pattern to fund transfer.</div>
+    </div>
+  </div>
+
+  <div class="callout yellow">
+    <strong>Key concepts to focus on:</strong> Service discovery (Eureka) · Centralized config · API Gateway + Keycloak (JWT) · Inter-service communication (OpenFeign) · Async messaging (RabbitMQ) · Distributed tracing (Zipkin)
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- STEP 1 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="chapter">
+    <div class="chapter-label">Step 1</div>
+    <h2>Service Registry</h2>
+    <div class="chapter-subtitle">internet-banking-service-registry · Port 8081</div>
+
+    <h3>What Is It?</h3>
+    <p>A <strong>Netflix Eureka Server</strong> — it acts as a <em>phone book</em> for all microservices. Every other service registers itself here, and services use it to find each other by name instead of hardcoded IPs.</p>
+
+    <h3>build.gradle — Dependencies</h3>
+    <pre><code><span class="cm">// The single key dependency</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-web'</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-actuator'</span></code></pre>
+
+    <h3>Main Class</h3>
+    <pre><code><span class="an">@EnableEurekaServer</span>        <span class="cm">// turns this app into a Eureka Server</span>
+<span class="an">@SpringBootApplication</span>
+<span class="kw">public class</span> <span class="tp">InternetBankingServiceRegistryApplication</span> {
+    <span class="kw">public static void</span> <span class="nm">main</span>(<span class="tp">String</span>[] args) {
+        <span class="tp">SpringApplication</span>.<span class="nm">run</span>(<span class="tp">InternetBankingServiceRegistryApplication</span>.<span class="kw">class</span>, args);
+    }
+}</code></pre>
+    <div class="callout green"><strong>One annotation</strong> — <code>@EnableEurekaServer</code> — is all the Java code needed.</div>
+
+    <h3>application.yml</h3>
+    <pre><code><span class="ky">server:</span>
+  <span class="ky">port:</span> <span class="nb">8081</span>
+
+<span class="ky">eureka:</span>
+  <span class="ky">client:</span>
+    <span class="ky">service-url:</span>
+      <span class="ky">defaultZone:</span> <span class="vl">http://localhost:${server.port}/eureka</span>
+    <span class="ky">register-with-eureka:</span> <span class="nb">false</span>   <span class="cm"># don't register itself</span>
+    <span class="ky">fetch-registry:</span> <span class="nb">false</span>          <span class="cm"># don't fetch from itself</span>
+  <span class="ky">instance:</span>
+    <span class="ky">prefer-ip-address:</span> <span class="nb">true</span>
+    <span class="ky">hostname:</span> <span class="vl">localhost</span></code></pre>
+
+    <h3>How Other Services Connect</h3>
+    <pre><code><span class="cm"># Every client service has this:</span>
+<span class="ky">eureka:</span>
+  <span class="ky">client:</span>
+    <span class="ky">service-url:</span>
+      <span class="ky">defaultZone:</span> <span class="vl">http://internet-banking-service-registry:8081/eureka</span>
+    <span class="ky">register-with-eureka:</span> <span class="nb">true</span>   <span class="cm"># opposite of server</span>
+    <span class="ky">fetch-registry:</span> <span class="nb">true</span></code></pre>
+
+    <h3>How to Run Locally</h3>
+    <pre><code>cd internet-banking-service-registry
+./gradlew bootRun
+<span class="cm"># Open: http://localhost:8081  → Eureka dashboard</span></code></pre>
+
+    <div class="summary">
+      <h4>Summary</h4>
+      <table>
+        <tr><th>File</th><th>Purpose</th></tr>
+        <tr><td>build.gradle</td><td>Adds Eureka Server dependency</td></tr>
+        <tr><td>application.yml</td><td>Configures port &amp; disables self-registration</td></tr>
+        <tr><td>Main class</td><td>@EnableEurekaServer — that's it</td></tr>
+        <tr><td>Dockerfile</td><td>Packages jar for Docker with Java 21</td></tr>
+      </table>
+      <p><strong>The big concept:</strong> This service is a "where is everyone?" registry. Every other microservice announces itself here on startup, and when service A needs to call service B, it asks Eureka for B's address instead of hardcoding it.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- STEP 2 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="chapter">
+    <div class="chapter-label">Step 2</div>
+    <h2>Config Server</h2>
+    <div class="chapter-subtitle">internet-banking-config-server · Port 8090</div>
+
+    <h3>What Is It?</h3>
+    <p>A <strong>Spring Cloud Config Server</strong> — it serves configuration files (<code>.yml</code>) to all other microservices from a <strong>central Git repository</strong>. Instead of each service having its own <code>application.yml</code> with database URLs and ports, they all fetch config from this server at startup.</p>
+    <div class="callout"><strong>Think of it as:</strong> one place to manage config for all services.</div>
+
+    <h3>build.gradle — Key Dependency</h3>
+    <pre><code><span class="nm">implementation</span> <span class="st">'org.springframework.cloud:spring-cloud-config-server'</span></code></pre>
+
+    <h3>Main Class</h3>
+    <pre><code><span class="an">@EnableConfigServer</span>       <span class="cm">// turns this app into a Config Server</span>
+<span class="an">@SpringBootApplication</span>
+<span class="kw">public class</span> <span class="tp">InternetBankingConfigServerApplication</span> { ... }</code></pre>
+
+    <h3>application.yml — The Important One</h3>
+    <pre><code><span class="ky">server:</span>
+  <span class="ky">port:</span> <span class="nb">8090</span>
+
+<span class="ky">spring:</span>
+  <span class="ky">cloud:</span>
+    <span class="ky">config:</span>
+      <span class="ky">server:</span>
+        <span class="ky">git:</span>
+          <span class="ky">uri:</span> <span class="vl">https://github.com/JavatoDev-com/internet-banking-microservices-configurations.git</span>
+          <span class="ky">search-paths:</span> <span class="vl">configuration</span>   <span class="cm"># look inside this folder</span>
+          <span class="ky">default-label:</span> <span class="vl">main</span>            <span class="cm"># use the 'main' branch</span></code></pre>
+
+    <h3>How Config Files Are Named in the Git Repo</h3>
+    <pre><code>configuration/
+  internet-banking-user-service.yml
+  internet-banking-fund-transfer-service.yml
+  internet-banking-api-gateway.yml
+  internet-banking-user-service-docker.yml   <span class="cm">← docker profile override</span></code></pre>
+
+    <h3>How Other Services Consume This</h3>
+    <pre><code><span class="ky">spring:</span>
+  <span class="ky">config:</span>
+    <span class="ky">import:</span> <span class="vl">configserver:http://internet-banking-config-server:8090</span>
+  <span class="ky">application:</span>
+    <span class="ky">name:</span> <span class="vl">internet-banking-user-service</span>  <span class="cm"># must match filename in config repo</span></code></pre>
+
+    <h3>Startup Order (Important!)</h3>
+    <div class="flow">
+      <span class="nb">1.</span> <span class="node">Service Registry (Eureka)</span>  → port <span class="st">8081</span><br/>
+      <span class="nb">2.</span> <span class="node">Config Server</span>             → port <span class="st">8090</span><br/>
+      <span class="nb">3.</span> <span class="node">All other services</span>        → <span class="note">they need config server to be up first</span>
+    </div>
+    <p>The <code>wait-for-it.sh</code> script in Docker handles this — it waits for dependencies to be ready before starting.</p>
+
+    <div class="summary">
+      <h4>Summary</h4>
+      <table>
+        <tr><th>File</th><th>Purpose</th></tr>
+        <tr><td>build.gradle</td><td>Adds Config Server dependency</td></tr>
+        <tr><td>application.yml</td><td>Points to GitHub repo where config files live</td></tr>
+        <tr><td>Main class</td><td>@EnableConfigServer — that's it</td></tr>
+        <tr><td>Dockerfile</td><td>Runs with docker profile active</td></tr>
+      </table>
+      <p><strong>The big concept:</strong> No service owns its own full config. They all ask the config server at startup — "give me my config". Change a DB URL in Git and restart a service, without rebuilding the jar.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- STEP 3 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="chapter">
+    <div class="chapter-label">Step 3</div>
+    <h2>API Gateway</h2>
+    <div class="chapter-subtitle">internet-banking-api-gateway · Port 8082</div>
+
+    <h3>What Is It?</h3>
+    <p>The <strong>single entry point</strong> for all client requests. No client talks directly to any microservice — everything goes through the gateway first. It handles:</p>
+    <ol>
+      <li><strong>Routing</strong> — forward requests to the right service</li>
+      <li><strong>Authentication</strong> — validate JWT tokens via Keycloak</li>
+      <li><strong>Header injection</strong> — pass the authenticated user's ID to downstream services</li>
+    </ol>
+
+    <h3>build.gradle — Key Dependencies</h3>
+    <pre><code><span class="cm">// Core gateway (reactive)</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.cloud:spring-cloud-starter-gateway'</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-webflux'</span>
+
+<span class="cm">// Security - OAuth2/JWT</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-security'</span>
+<span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-oauth2-resource-server'</span>
+
+<span class="cm">// Distributed tracing</span>
+<span class="nm">implementation</span> <span class="st">'io.micrometer:micrometer-tracing-bridge-brave'</span>
+<span class="nm">implementation</span> <span class="st">'io.zipkin.reporter2:zipkin-reporter-brave'</span></code></pre>
+
+    <div class="callout yellow"><strong>Note:</strong> Uses WebFlux (reactive) — not traditional Spring MVC. That's why you'll see <code>Mono</code>, <code>Flux</code>, and <code>ServerHttpSecurity</code> instead of regular <code>HttpSecurity</code>.</div>
+
+    <h3>bootstrap.yml / bootstrap-docker.yml</h3>
+    <pre><code><span class="cm"># bootstrap.yml — local dev</span>
+<span class="ky">spring:</span>
+  <span class="ky">cloud:</span>
+    <span class="ky">config:</span>
+      <span class="ky">uri:</span> <span class="vl">http://localhost:8090</span>
+
+<span class="cm"># bootstrap-docker.yml — Docker</span>
+<span class="ky">spring:</span>
+  <span class="ky">cloud:</span>
+    <span class="ky">config:</span>
+      <span class="ky">uri:</span> <span class="vl">http://internet-banking-config-server:8090</span></code></pre>
+    <p><code>bootstrap.yml</code> loads <em>before</em> <code>application.yml</code> — it tells Spring where to fetch the rest of the config.</p>
+
+    <h3>SecurityConfiguration.java — JWT Authentication</h3>
+    <pre><code><span class="an">@EnableWebFluxSecurity</span>   <span class="cm">// reactive security</span>
+<span class="kw">public class</span> <span class="tp">SecurityConfiguration</span> {
+
+    <span class="an">@Bean</span>
+    <span class="kw">public</span> <span class="tp">SecurityWebFilterChain</span> <span class="nm">securityWebFilterChain</span>(<span class="tp">ServerHttpSecurity</span> http) {
+        http.<span class="nm">authorizeExchange</span>(exchanges -> {
+
+            <span class="cm">// Public endpoints (no token needed)</span>
+            exchanges.<span class="nm">pathMatchers</span>(<span class="st">"/user/api/v1/bank-users/register"</span>).<span class="nm">permitAll</span>();
+            exchanges.<span class="nm">pathMatchers</span>(<span class="st">"/actuator/**"</span>).<span class="nm">permitAll</span>();
+
+            <span class="cm">// Everything else requires a valid JWT</span>
+            .<span class="nm">anyExchange</span>().<span class="nm">authenticated</span>();
+        });
+
+        http.<span class="nm">csrf</span>(disable);
+
+        <span class="cm">// Validate JWT using Keycloak's public key (JWK URI)</span>
+        http.<span class="nm">oauth2ResourceServer</span>(server ->
+            server.<span class="nm">jwt</span>(jwt -> jwt.<span class="nm">jwkSetUri</span>(jwkUri))
+        );
+    }
+}</code></pre>
+
+    <h4>How JWT Validation Works (Step by Step)</h4>
+    <ol>
+      <li>Client logs in to <strong>Keycloak</strong> → gets a JWT token</li>
+      <li>Client sends request with <code>Authorization: Bearer &lt;token&gt;</code></li>
+      <li>Gateway calls Keycloak's <code>jwk-set-uri</code> to get the public key</li>
+      <li>Gateway verifies the token signature using that key</li>
+      <li>If valid → forward request. If invalid → <code>401 Unauthorized</code></li>
+    </ol>
+
+    <h3>GatewayConfiguration.java — Global Filter</h3>
+    <pre><code><span class="an">@Bean</span>
+<span class="kw">public</span> <span class="tp">GlobalFilter</span> <span class="nm">customGlobalFilter</span>() {
+    <span class="kw">return</span> (exchange, chain) ->
+        exchange.<span class="nm">getPrincipal</span>()
+            .<span class="nm">map</span>(<span class="tp">Principal</span>::getName)
+            .<span class="nm">defaultIfEmpty</span>(<span class="st">"SYSTEM USER"</span>)
+            .<span class="nm">map</span>(principal -> {
+                <span class="cm">// Inject username into request header for downstream services</span>
+                exchange.<span class="nm">getRequest</span>().<span class="nm">mutate</span>()
+                    .<span class="nm">header</span>(<span class="st">"X-Auth-Id"</span>, principal)
+                    .<span class="nm">build</span>();
+                <span class="kw">return</span> exchange;
+            })
+            .<span class="nm">flatMap</span>(chain::filter);
+}</code></pre>
+    <p>Runs on <strong>every request</strong>. Extracts the authenticated username from JWT and injects it as <code>X-Auth-Id</code> header. Downstream services just read this header — no JWT re-validation needed.</p>
+
+    <h3>Full Request Flow</h3>
+    <div class="flow">
+      <span class="node">Client</span><br/>
+      <span class="arrow">  │  POST /user/api/v1/bank-users/register</span><br/>
+      <span class="arrow">  │  Authorization: Bearer eyJhbG...</span><br/>
+      <span class="arrow">  ▼</span><br/>
+      <span class="node">API Gateway</span> <span class="cm">(:8082)</span><br/>
+      <span class="arrow">  ├─ SecurityConfiguration → validate JWT with Keycloak</span><br/>
+      <span class="arrow">  ├─ GatewayConfiguration  → inject X-Auth-Id header</span><br/>
+      <span class="arrow">  │  (looks up "internet-banking-user-service" in Eureka)</span><br/>
+      <span class="arrow">  ▼</span><br/>
+      <span class="node">User Service</span> <span class="cm">(:8083)</span>
+    </div>
+
+    <div class="summary">
+      <h4>Summary</h4>
+      <table>
+        <tr><th>File</th><th>Purpose</th></tr>
+        <tr><td>build.gradle</td><td>Gateway + Security + WebFlux + Config + Tracing</td></tr>
+        <tr><td>application.yml</td><td>App name only</td></tr>
+        <tr><td>bootstrap.yml</td><td>Points to config server (local/docker profiles)</td></tr>
+        <tr><td>SecurityConfiguration.java</td><td>JWT validation via Keycloak, public endpoints whitelist</td></tr>
+        <tr><td>GatewayConfiguration.java</td><td>Injects X-Auth-Id header on every request</td></tr>
+      </table>
+      <p><strong>The big concept:</strong> The gateway is the <em>security boundary</em>. Inner services trust that if a request arrived, it's already authenticated. They just read the <code>X-Auth-Id</code> header — no JWT validation needed inside each service.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════ -->
+  <!-- STEP 4 -->
+  <!-- ═══════════════════════════════════════════════ -->
+  <div class="chapter">
+    <div class="chapter-label">Step 4</div>
+    <h2>Core Banking Service</h2>
+    <div class="chapter-subtitle">core-banking-service · Port 8092</div>
+
+    <h3>What Is It?</h3>
+    <p>The <strong>backbone of the entire system</strong> — a dummy banking core that manages accounts, balances, fund transfers, and utility payments. All other services call this via OpenFeign to do actual banking operations.</p>
+
+    <h3>Project Structure</h3>
+    <pre><code>src/main/java/com/javatodev/finance/
+├── controller/
+│   ├── AccountController.java       <span class="cm">← read accounts</span>
+│   ├── TransactionController.java   <span class="cm">← fund transfer &amp; utility payment</span>
+│   └── UserController.java
+├── service/
+│   ├── AccountService.java          <span class="cm">← account lookup logic</span>
+│   ├── TransactionService.java      <span class="cm">← core business logic</span>
+│   └── UserService.java
+├── model/
+│   ├── entity/                      <span class="cm">← JPA entities (DB tables)</span>
+│   ├── dto/                         <span class="cm">← data transfer objects (API payloads)</span>
+│   ├── mapper/                      <span class="cm">← entity ↔ dto conversion</span>
+│   └── enums: AccountType, AccountStatus, TransactionType
+├── repository/                      <span class="cm">← Spring Data JPA interfaces</span>
+├── exception/                       <span class="cm">← global error handling</span>
+└── resources/db/migration/          <span class="cm">← Flyway SQL scripts</span></code></pre>
+
+    <h3>build.gradle — Key Dependencies</h3>
+    <pre><code><span class="nm">implementation</span> <span class="st">'org.springframework.boot:spring-boot-starter-data-jpa'</span>  <span class="cm">// ORM</span>
+<span class="nm">implementation</span> <span class="st">'com.mysql:mysql-connector-j:8.4.0'</span>                      <span class="cm">// MySQL</span>
+<span class="nm">implementation</span> <span class="st">'org.flywaydb:flyway-core'</span>                               <span class="cm">// DB migrations</span>
+<span class="nm">compileOnly</span>    <span class="st">'org.projectlombok:lombok'</span>                               <span class="cm">// boilerplate reduction</span>
+<span class="nm">testImplementation</span> <span class="st">'com.h2database:h2'</span>                                  <span class="cm">// in-memory DB for tests</span></code></pre>
+
+    <h3>Database Schema (Flyway Migrations)</h3>
+    <pre><code><span class="cm">-- 3 core tables:</span>
+
+banking_core_user        <span class="cm">-- id, email, first_name, last_name, identification_number</span>
+    │
+    └── banking_core_account   <span class="cm">-- id, number, type, status, actual_balance, available_balance, user_id</span>
+
+banking_core_utility_account   <span class="cm">-- id, number, provider_name (e.g. "ELECTRICITY")</span>
+
+banking_core_transaction        <span class="cm">-- id, transactionId, amount, transactionType, account_id, referenceNumber</span></code></pre>
+    <p>Flyway runs SQL scripts <strong>automatically at startup</strong> — the DB schema is always in sync with the code.</p>
+
+    <h3>Entity → DTO Pattern</h3>
+    <div class="flow">
+      <span class="node">BankAccountEntity</span>  <span class="cm">(DB table)</span><br/>
+      <span class="arrow">       │</span><br/>
+      <span class="arrow">  BankAccountMapper.convertToDto()</span><br/>
+      <span class="arrow">       │</span><br/>
+      <span class="node">BankAccount</span>  <span class="cm">(DTO sent in API response)</span>
+    </div>
+    <p>You never expose raw DB entities to callers — always convert to DTO first.</p>
+
+    <h3>AccountService.java</h3>
+    <pre><code><span class="kw">public</span> <span class="tp">BankAccount</span> <span class="nm">readBankAccount</span>(<span class="tp">String</span> accountNumber) {
+    <span class="tp">BankAccountEntity</span> entity = bankAccountRepository
+        .<span class="nm">findByNumber</span>(accountNumber)
+        .<span class="nm">orElseThrow</span>(<span class="tp">EntityNotFoundException</span>::<span class="kw">new</span>);  <span class="cm">// 404 if not found</span>
+    <span class="kw">return</span> bankAccountMapper.<span class="nm">convertToDto</span>(entity);
+}</code></pre>
+
+    <h3>TransactionService.java — Core Business Logic</h3>
+    <h4>Fund Transfer</h4>
+    <pre><code><span class="an">@Transactional</span>   <span class="cm">// if anything fails, entire operation rolls back</span>
+<span class="kw">public</span> <span class="tp">FundTransferResponse</span> <span class="nm">fundTransfer</span>(<span class="tp">FundTransferRequest</span> request) {
+    <span class="tp">BankAccount</span> from = accountService.<span class="nm">readBankAccount</span>(request.<span class="nm">getFromAccount</span>());
+    <span class="tp">BankAccount</span> to   = accountService.<span class="nm">readBankAccount</span>(request.<span class="nm">getToAccount</span>());
+
+    <span class="nm">validateBalance</span>(from, request.<span class="nm">getAmount</span>());  <span class="cm">// check sufficient funds</span>
+
+    <span class="tp">String</span> transactionId = <span class="nm">internalFundTransfer</span>(from, to, request.<span class="nm">getAmount</span>());
+    <span class="kw">return</span> <span class="tp">FundTransferResponse</span>.<span class="nm">builder</span>()
+        .<span class="nm">message</span>(<span class="st">"Transaction successfully completed"</span>)
+        .<span class="nm">transactionId</span>(transactionId).<span class="nm">build</span>();
+}</code></pre>
+
+    <h4>internalFundTransfer() — What Actually Happens</h4>
+    <pre><code><span class="cm">// 1. Debit from sender</span>
+fromAccount.<span class="nm">setActualBalance</span>(fromAccount.<span class="nm">getActualBalance</span>().<span class="nm">subtract</span>(amount));
+bankAccountRepository.<span class="nm">save</span>(fromAccount);
+
+<span class="cm">// 2. Save DEBIT transaction record (amount is negative)</span>
+transactionRepository.<span class="nm">save</span>(<span class="tp">TransactionEntity</span>.<span class="nm">builder</span>()
+    .<span class="nm">transactionType</span>(FUND_TRANSFER)
+    .<span class="nm">amount</span>(amount.<span class="nm">negate</span>())   <span class="cm">// negative = money going out</span>
+    .<span class="nm">account</span>(fromAccount)
+    .<span class="nm">transactionId</span>(transactionId).<span class="nm">build</span>());
+
+<span class="cm">// 3. Credit receiver</span>
+toAccount.<span class="nm">setActualBalance</span>(toAccount.<span class="nm">getActualBalance</span>().<span class="nm">add</span>(amount));
+bankAccountRepository.<span class="nm">save</span>(toAccount);
+
+<span class="cm">// 4. Save CREDIT transaction record (amount is positive)</span>
+transactionRepository.<span class="nm">save</span>(<span class="tp">TransactionEntity</span>.<span class="nm">builder</span>()
+    .<span class="nm">transactionType</span>(FUND_TRANSFER)
+    .<span class="nm">amount</span>(amount)            <span class="cm">// positive = money coming in</span>
+    .<span class="nm">account</span>(toAccount)
+    .<span class="nm">transactionId</span>(transactionId).<span class="nm">build</span>());</code></pre>
+    <div class="callout green"><strong>Both transaction records share the same <code>transactionId</code></strong> — that's how you trace a transfer end-to-end. The whole method is <code>@Transactional</code> — if anything fails, everything rolls back. No partial transfers.</div>
+
+    <h3>GlobalExceptionHandler.java</h3>
+    <pre><code><span class="an">@ControllerAdvice</span>  <span class="cm">// applies to ALL controllers</span>
+<span class="kw">public class</span> <span class="tp">GlobalExceptionHandler</span> {
+
+    <span class="an">@ExceptionHandler</span>(<span class="tp">SimpleBankingGlobalException</span>.<span class="kw">class</span>)
+    <span class="kw">protected</span> <span class="tp">ResponseEntity</span> <span class="nm">handleGlobalException</span>(...) {
+        <span class="kw">return</span> <span class="tp">ResponseEntity</span>.<span class="nm">badRequest</span>()
+            .<span class="nm">body</span>(<span class="tp">ErrorResponse</span>.<span class="nm">builder</span>()
+                .<span class="nm">code</span>(exception.<span class="nm">getCode</span>())
+                .<span class="nm">message</span>(exception.<span class="nm">getMessage</span>()).<span class="nm">build</span>());
+    }
+}</code></pre>
+    <p>Exception hierarchy:</p>
+    <pre><code>SimpleBankingGlobalException <span class="cm">(base)</span>
+    ├── EntityNotFoundException     <span class="cm">→ account not found</span>
+    └── InsufficientFundsException  <span class="cm">→ not enough balance</span></code></pre>
+
+    <h3>REST API Endpoints</h3>
+    <table>
+      <tr><th>Method</th><th>URL</th><th>What it does</th></tr>
+      <tr><td>GET</td><td>/api/v1/account/bank-account/{number}</td><td>Get bank account details</td></tr>
+      <tr><td>GET</td><td>/api/v1/account/util-account/{name}</td><td>Get utility account details</td></tr>
+      <tr><td>POST</td><td>/api/v1/transaction/fund-transfer</td><td>Transfer money between accounts</td></tr>
+      <tr><td>POST</td><td>/api/v1/transaction/util-payment</td><td>Pay a utility bill</td></tr>
+    </table>
+
+    <div class="summary">
+      <h4>Summary</h4>
+      <table>
+        <tr><th>Concept</th><th>Where</th></tr>
+        <tr><td>DB schema</td><td>db/migration/*.sql (Flyway)</td></tr>
+        <tr><td>Entity → DTO mapping</td><td>model/mapper/</td></tr>
+        <tr><td>Account lookup</td><td>AccountService</td></tr>
+        <tr><td>Fund transfer logic</td><td>TransactionService.internalFundTransfer()</td></tr>
+        <tr><td>Error handling</td><td>GlobalExceptionHandler + exception classes</td></tr>
+        <tr><td>@Transactional</td><td>Ensures atomic DB operations</td></tr>
+      </table>
+      <p><strong>The big concept:</strong> This service is called by others — it never initiates anything. It's a passive core that processes what it's told. Other services own the business workflows; this service owns the data and money movement.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; margin-top:80px; padding-top:30px; border-top:1px solid var(--border); color:var(--muted); font-size:0.85em;">
+    Internet Banking Microservices Tutorial · Steps 1–4 · Spring Boot 3.2.4 · Java 21
+  </div>
+
+</div>
+</body>
+</html>
